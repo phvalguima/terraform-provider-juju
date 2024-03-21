@@ -75,15 +75,15 @@ type applicationResource struct {
 // applicationResourceModel describes the application data model.
 // tfsdk must match user resource schema attribute names.
 type applicationResourceModel struct {
-	ApplicationName  types.String `tfsdk:"name"`
-	Charm            types.List   `tfsdk:"charm"`
-	Config           types.Map    `tfsdk:"config"`
-	Constraints      types.String `tfsdk:"constraints"`
-	Expose           types.List   `tfsdk:"expose"`
-	ModelName        types.String `tfsdk:"model"`
-	Placement        types.String `tfsdk:"placement"`
-	EndpointBindings types.Set    `tfsdk:"endpoint_bindings"`
-	Resources        types.Map    `tfsdk:"resources"`
+	ApplicationName  types.String         `tfsdk:"name"`
+	Charm            types.List           `tfsdk:"charm"`
+	Config           types.Map            `tfsdk:"config"`
+	Constraints      juju.ConstraintsType `tfsdk:"constraints"`
+	Expose           types.List           `tfsdk:"expose"`
+	ModelName        types.String         `tfsdk:"model"`
+	Placement        types.String         `tfsdk:"placement"`
+	EndpointBindings types.Set            `tfsdk:"endpoint_bindings"`
+	Resources        types.Map            `tfsdk:"resources"`
 	// TODO - remove Principal when we version the schema
 	// and remove deprecated elements. Once we create upgrade
 	// functionality it can be removed from the structure.
@@ -437,7 +437,7 @@ func (r *applicationResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	var parsedConstraints = constraints.Value{}
-	if plan.Constraints.ValueString() != "" {
+	if plan.Constraints.String() != "" {
 		var err error
 		parsedConstraints, err = constraints.Parse(plan.Constraints.ValueString())
 		if err != nil {
@@ -855,7 +855,7 @@ func (r *applicationResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	if !plan.Constraints.Equal(state.Constraints) {
-		appConstraints, err := constraints.Parse(plan.Constraints.ValueString())
+		appConstraints, err := constraints.Parse(plan.Constraints.String())
 		if err != nil {
 			resp.Diagnostics.AddError("Conversion", fmt.Sprintf("Unable to parse plan constraints, got error: %s", err))
 		}
@@ -1053,7 +1053,7 @@ func applicationResourceModelForLogging(_ context.Context, app *applicationResou
 	value := map[string]interface{}{
 		"application-name": app.ApplicationName.ValueString(),
 		"charm":            app.Charm.String(),
-		"constraints":      app.Constraints.ValueString(),
+		"constraints":      app.Constraints.String(),
 		"model":            app.ModelName.ValueString(),
 		"placement":        app.Placement.ValueString(),
 		"expose":           app.Expose.String(),
